@@ -1,0 +1,110 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/docker/postgres-init:/docker-entrypoint-initdb.d
+
+  recovery-plan-service:
+    build:
+      context: .
+      dockerfile: backend/recovery-plan-service/Dockerfile
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/recovery_plan_db
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,recovery-plan-service
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000
+      TZ: Africa/Casablanca
+    depends_on:
+      - postgres
+    ports:
+      - "8001:8000"
+
+  questionnaire-service:
+    build:
+      context: .
+      dockerfile: backend/questionnaire-service/Dockerfile
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/questionnaire_db
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,questionnaire-service
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000
+      TZ: Africa/Casablanca
+    depends_on:
+      - postgres
+    ports:
+      - "8002:8000"
+
+  exercise-guidance-service:
+    build:
+      context: .
+      dockerfile: backend/exercise-guidance-service/Dockerfile
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/exercise_guidance_db
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,exercise-guidance-service
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000
+      TZ: Africa/Casablanca
+    depends_on:
+      - postgres
+    ports:
+      - "8003:8000"
+
+  complication-alert-service:
+    build:
+      context: .
+      dockerfile: backend/complication-alert-service/Dockerfile
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/complication_alert_db
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,complication-alert-service
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000
+      TZ: Africa/Casablanca
+    depends_on:
+      - postgres
+    ports:
+      - "8004:8000"
+
+  care-coordination-service:
+    build:
+      context: .
+      dockerfile: backend/care-coordination-service/Dockerfile
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/care_coordination_db
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,care-coordination-service
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000
+      TZ: Africa/Casablanca
+    depends_on:
+      - postgres
+    ports:
+      - "8005:8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      PORT: 3000
+      RECOVERY_PLAN_SERVICE_URL: http://recovery-plan-service:8000
+      QUESTIONNAIRE_SERVICE_URL: http://questionnaire-service:8000
+      EXERCISE_GUIDANCE_SERVICE_URL: http://exercise-guidance-service:8000
+      COMPLICATION_ALERT_SERVICE_URL: http://complication-alert-service:8000
+      CARE_COORDINATION_SERVICE_URL: http://care-coordination-service:8000
+    depends_on:
+      - recovery-plan-service
+      - questionnaire-service
+      - exercise-guidance-service
+      - complication-alert-service
+      - care-coordination-service
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+
+volumes:
+  postgres_data:
