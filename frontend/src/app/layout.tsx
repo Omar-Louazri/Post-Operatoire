@@ -5,19 +5,17 @@ import "@fontsource/fraunces/latin.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Suivi post-operatoire",
+  title: "PostOpCare — Suivi post-opératoire",
   description:
-    "Plateforme de suivi post-operatoire et de reeducation pour patients et equipes de soins.",
+    "Plateforme de suivi post-opératoire et de rééducation pour patients et équipes de soins.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full bg-background text-foreground">{children}</body>
     </html>
   );
 }

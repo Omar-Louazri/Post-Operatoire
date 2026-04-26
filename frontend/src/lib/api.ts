@@ -1,3 +1,5 @@
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 export type RecoveryPlan = {
   id: number;
   slug: string;
@@ -22,6 +24,18 @@ export type QuestionnaireTemplate = {
   questions: Array<{ label: string; type: string; required: boolean }>;
 };
 
+export type QuestionnaireSubmission = {
+  id: number;
+  patient_code: string;
+  template: QuestionnaireTemplate;
+  scheduled_for: string | null;
+  submitted_at: string;
+  status: "pending" | "submitted" | "escalated";
+  answers: Record<string, unknown>;
+  pain_score: number | null;
+  free_text: string;
+};
+
 export type ExerciseProtocol = {
   id: number;
   slug: string;
@@ -40,7 +54,7 @@ export type AlertRule = {
   id: number;
   code: string;
   title: string;
-  severity: string;
+  severity: "low" | "medium" | "high" | "critical";
   trigger_conditions: string[];
   immediate_action: string;
 };
@@ -61,128 +75,94 @@ export type CareCoordinationTask = {
   patient_code: string;
   title: string;
   responsible_role: string;
-  status: string;
-  priority: string;
+  status: "planned" | "in_progress" | "done";
+  priority: "low" | "medium" | "high";
   due_at: string;
   summary: string;
   channel: string;
 };
 
-type Snapshot<T> = {
-  data: T;
-  online: boolean;
-};
-
-export type DashboardData = {
-  plans: RecoveryPlan[];
-  questionnaires: QuestionnaireTemplate[];
-  exercises: ExerciseProtocol[];
-  alertRules: AlertRule[];
-  contacts: CareTeamContact[];
-  tasks: CareCoordinationTask[];
-  services: Array<{ name: string; online: boolean; description: string }>;
-};
+// ─── Service URLs ─────────────────────────────────────────────────────────────
 
 const serviceUrls = {
   recovery: process.env.RECOVERY_PLAN_SERVICE_URL ?? "http://localhost:8001",
-  questionnaire:
-    process.env.QUESTIONNAIRE_SERVICE_URL ?? "http://localhost:8002",
-  exercise:
-    process.env.EXERCISE_GUIDANCE_SERVICE_URL ?? "http://localhost:8003",
-  complication:
-    process.env.COMPLICATION_ALERT_SERVICE_URL ?? "http://localhost:8004",
-  coordination:
-    process.env.CARE_COORDINATION_SERVICE_URL ?? "http://localhost:8005",
+  questionnaire: process.env.QUESTIONNAIRE_SERVICE_URL ?? "http://localhost:8002",
+  exercise: process.env.EXERCISE_GUIDANCE_SERVICE_URL ?? "http://localhost:8003",
+  complication: process.env.COMPLICATION_ALERT_SERVICE_URL ?? "http://localhost:8004",
+  coordination: process.env.CARE_COORDINATION_SERVICE_URL ?? "http://localhost:8005",
 } as const;
 
-async function fetchSnapshot<T>(url: string, fallback: T): Promise<Snapshot<T>> {
+// ─── Fetcher ──────────────────────────────────────────────────────────────────
+
+async function safeGet<T>(url: string, fallback: T): Promise<T> {
   try {
-    const response = await fetch(url, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error(`Unexpected status ${response.status}`);
-    }
-
-    return {
-      data: (await response.json()) as T,
-      online: true,
-    };
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return fallback;
+    return (await res.json()) as T;
   } catch {
-    return {
-      data: fallback,
-      online: false,
-    };
+    return fallback;
   }
 }
 
-export async function getDashboardData(): Promise<DashboardData> {
-  const [plans, questionnaires, exercises, alertRules, contacts, tasks] =
-    await Promise.all([
-      fetchSnapshot<RecoveryPlan[]>(
-        `${serviceUrls.recovery}/api/recovery-plans/`,
-        [],
-      ),
-      fetchSnapshot<QuestionnaireTemplate[]>(
-        `${serviceUrls.questionnaire}/api/questionnaires/`,
-        [],
-      ),
-      fetchSnapshot<ExerciseProtocol[]>(
-        `${serviceUrls.exercise}/api/exercises/`,
-        [],
-      ),
-      fetchSnapshot<AlertRule[]>(
-        `${serviceUrls.complication}/api/alert-rules/`,
-        [],
-      ),
-      fetchSnapshot<CareTeamContact[]>(
-        `${serviceUrls.coordination}/api/care-team/`,
-        [],
-      ),
-      fetchSnapshot<CareCoordinationTask[]>(
-        `${serviceUrls.coordination}/api/care-tasks/`,
-        [],
-      ),
-    ]);
+// ─── Recovery Plan Service (port 8001) ───────────────────────────────────────
 
-  return {
-    plans: plans.data,
-    questionnaires: questionnaires.data,
-    exercises: exercises.data,
-    alertRules: alertRules.data,
-    contacts: contacts.data,
-    tasks: tasks.data,
-    services: [
-      {
-        name: "Parcours",
-        online: plans.online,
-        description: "Bibliotheque de parcours post-op types",
-      },
-      {
-        name: "Questionnaires",
-        online: questionnaires.online,
-        description: "Suivi clinique cadence et reponses patient",
-      },
-      {
-        name: "Exercices",
-        online: exercises.online,
-        description: "Protocoles guides avec validation terrain",
-      },
-      {
-        name: "Alertes",
-        online: alertRules.online,
-        description: "Evaluation automatique des signaux de complication",
-      },
-      {
-        name: "Coordination",
-        online: contacts.online && tasks.online,
-        description: "Synchronisation entre medecins kine et infirmiers",
-      },
-    ],
-  };
-}
+export const recoveryApi = {
+  plans: () =>
+    safeGet<RecoveryPlan[]>(`${serviceUrls.recovery}/api/recovery-plans/`, []),
+  plan: (slug: string) =>
+    safeGet<RecoveryPlan | null>(
+      `${serviceUrls.recovery}/api/recovery-plans/${slug}/`,
+      null,
+    ),
+};
 
-export function getComplicationServiceUrl(): string {
-  return serviceUrls.complication;
-}
+// ─── Questionnaire Service (port 8002) ───────────────────────────────────────
+
+export const questionnaireApi = {
+  templates: () =>
+    safeGet<QuestionnaireTemplate[]>(
+      `${serviceUrls.questionnaire}/api/questionnaires/`,
+      [],
+    ),
+  submissions: () =>
+    safeGet<QuestionnaireSubmission[]>(
+      `${serviceUrls.questionnaire}/api/submissions/`,
+      [],
+    ),
+};
+
+// ─── Exercise Guidance Service (port 8003) ───────────────────────────────────
+
+export const exerciseApi = {
+  protocols: () =>
+    safeGet<ExerciseProtocol[]>(`${serviceUrls.exercise}/api/exercises/`, []),
+  protocol: (slug: string) =>
+    safeGet<ExerciseProtocol | null>(
+      `${serviceUrls.exercise}/api/exercises/${slug}/`,
+      null,
+    ),
+};
+
+// ─── Complication Alert Service (port 8004) ──────────────────────────────────
+
+export const alertApi = {
+  rules: () =>
+    safeGet<AlertRule[]>(`${serviceUrls.complication}/api/alert-rules/`, []),
+};
+
+// ─── Care Coordination Service (port 8005) ───────────────────────────────────
+
+export const coordinationApi = {
+  team: () =>
+    safeGet<CareTeamContact[]>(`${serviceUrls.coordination}/api/care-team/`, []),
+  tasks: () =>
+    safeGet<CareCoordinationTask[]>(
+      `${serviceUrls.coordination}/api/care-tasks/`,
+      [],
+    ),
+};
+
+// ─── URL getters for server-side API proxy routes ────────────────────────────
+
+export const getComplicationServiceUrl = () => serviceUrls.complication;
+export const getQuestionnaireServiceUrl = () => serviceUrls.questionnaire;
