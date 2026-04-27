@@ -4,7 +4,6 @@ import { startTransition, useState } from "react";
 import { AlertCircle, CheckCircle2, ClipboardList } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,14 +27,19 @@ import type { QuestionnaireTemplate } from "@/lib/api";
 
 type Props = {
   templates: QuestionnaireTemplate[];
+  selectedSlug?: string;
+  onTemplateChange?: (slug: string) => void;
+  availablePatientCodes?: string[];
 };
 
 type AnswerValue = string | number | boolean;
 
-export function QuestionnaireForm({ templates }: Props) {
-  const [selectedSlug, setSelectedSlug] = useState<string>(
+export function QuestionnaireForm({ templates, selectedSlug: controlledSlug, onTemplateChange, availablePatientCodes }: Props) {
+  const [internalSlug, setInternalSlug] = useState<string>(
     templates[0]?.slug ?? "",
   );
+  const selectedSlug = controlledSlug ?? internalSlug;
+
   const [patientCode, setPatientCode] = useState("PT-2048");
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [painScore, setPainScore] = useState(0);
@@ -48,7 +52,8 @@ export function QuestionnaireForm({ templates }: Props) {
 
   function handleTemplateChange(slug: string | null) {
     if (!slug) return;
-    setSelectedSlug(slug);
+    onTemplateChange?.(slug);
+    setInternalSlug(slug);
     setAnswers({});
     setError(null);
     setSubmittedId(null);
@@ -107,11 +112,11 @@ export function QuestionnaireForm({ templates }: Props) {
           </div>
           <div>
             <CardTitle className="font-heading text-2xl">
-              Saisir une reponse
+              Saisir une réponse
             </CardTitle>
             <CardDescription>
-              Completez un questionnaire pour un patient et enregistrez les
-              reponses.
+              Complétez un questionnaire pour un patient et enregistrez les
+              réponses.
             </CardDescription>
           </div>
         </div>
@@ -121,11 +126,11 @@ export function QuestionnaireForm({ templates }: Props) {
           <Alert className="border-emerald-200 bg-emerald-50">
             <CheckCircle2 className="size-4 text-emerald-700" />
             <AlertTitle className="text-emerald-900">
-              Soumission enregistree
+              Soumission enregistrée
             </AlertTitle>
             <AlertDescription className="text-emerald-800">
-              Reponse #{submittedId} enregistree pour {patientCode}. Rechargez
-              la page pour voir les soumissions mises a jour.
+              Réponse #{submittedId} enregistrée pour {patientCode}. Rechargez
+              la page pour voir les soumissions mises à jour.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -148,13 +153,27 @@ export function QuestionnaireForm({ templates }: Props) {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="qf-patient">Code patient</Label>
-            <Input
-              id="qf-patient"
-              value={patientCode}
-              onChange={(e) => setPatientCode(e.target.value)}
-              placeholder="PT-0000"
-            />
+            <Label htmlFor="qf-patient">Patient</Label>
+            {availablePatientCodes && availablePatientCodes.length > 0 ? (
+              <select
+                id="qf-patient"
+                value={patientCode}
+                onChange={(e) => setPatientCode(e.target.value)}
+                className="h-9 rounded-md border border-input bg-white px-3 text-sm"
+              >
+                <option value="">— Sélectionner un patient —</option>
+                {availablePatientCodes.map((code) => (
+                  <option key={code} value={code}>{code}</option>
+                ))}
+              </select>
+            ) : (
+              <Input
+                id="qf-patient"
+                value={patientCode}
+                onChange={(e) => setPatientCode(e.target.value)}
+                placeholder="PT-0000"
+              />
+            )}
           </div>
         </div>
 
@@ -215,7 +234,7 @@ export function QuestionnaireForm({ templates }: Props) {
                   <Input
                     value={String(answers[q.label] ?? "")}
                     onChange={(e) => setAnswer(q.label, e.target.value)}
-                    placeholder="Votre reponse..."
+                    placeholder="Votre réponse..."
                   />
                 )}
               </div>
@@ -248,7 +267,7 @@ export function QuestionnaireForm({ templates }: Props) {
             id="qf-freetext"
             value={freeText}
             onChange={(e) => setFreeText(e.target.value)}
-            placeholder="Commentaires ou observations supplementaires..."
+            placeholder="Commentaires ou observations supplémentaires..."
             className="min-h-20"
           />
         </div>
@@ -273,15 +292,6 @@ export function QuestionnaireForm({ templates }: Props) {
           </Alert>
         ) : null}
 
-        {selectedTemplate ? (
-          <div className="flex flex-wrap gap-2 pt-1">
-            <Badge variant="secondary">{selectedTemplate.audience}</Badge>
-            <Badge variant="outline">{selectedTemplate.cadence}</Badge>
-            <Badge variant="outline" className="text-muted-foreground">
-              Valide: {selectedTemplate.medically_validated_by}
-            </Badge>
-          </div>
-        ) : null}
       </CardContent>
     </Card>
   );

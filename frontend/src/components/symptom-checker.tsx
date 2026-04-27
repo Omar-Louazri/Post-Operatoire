@@ -38,7 +38,7 @@ const severityClasses: Record<string, string> = {
   critical: "bg-rose-100 text-rose-900",
 };
 
-export function SymptomChecker() {
+export function SymptomChecker({ availablePatientCodes }: { availablePatientCodes?: string[] }) {
   const [patientCode, setPatientCode] = useState("PT-2048");
   const [painLevel, setPainLevel] = useState(4);
   const [hasFever, setHasFever] = useState(false);
@@ -83,7 +83,7 @@ export function SymptomChecker() {
       setError(
         submissionError instanceof Error
           ? submissionError.message
-          : "Une erreur est survenue pendant l evaluation.",
+          : "Une erreur est survenue pendant l'évaluation.",
       );
     } finally {
       setIsSubmitting(false);
@@ -96,11 +96,11 @@ export function SymptomChecker() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <CardTitle className="font-heading text-2xl">
-              Triage rapide post-op
+              Évaluation rapide post-op
             </CardTitle>
             <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-              Simulez une evaluation clinique a partir des indicateurs de
-              douleur, temperature, saignement et oedeme.
+              Décrivez vos symptômes à partir des indicateurs de
+              douleur, température, saignement et œdème.
             </p>
           </div>
           <Badge variant="secondary" className="bg-secondary/70 text-foreground">
@@ -120,18 +120,32 @@ export function SymptomChecker() {
           }}
         >
           <div className="grid gap-2">
-            <Label htmlFor="patientCode">Code patient</Label>
-            <Input
-              id="patientCode"
-              value={patientCode}
-              onChange={(event) => setPatientCode(event.target.value)}
-              placeholder="PT-2048"
-            />
+            <Label htmlFor="patientCode">Patient</Label>
+            {availablePatientCodes && availablePatientCodes.length > 0 ? (
+              <select
+                id="patientCode"
+                value={patientCode}
+                onChange={(e) => setPatientCode(e.target.value)}
+                className="h-9 rounded-md border border-input bg-white px-3 text-sm"
+              >
+                <option value="">— Sélectionner un patient —</option>
+                {availablePatientCodes.map((code) => (
+                  <option key={code} value={code}>{code}</option>
+                ))}
+              </select>
+            ) : (
+              <Input
+                id="patientCode"
+                value={patientCode}
+                onChange={(event) => setPatientCode(event.target.value)}
+                placeholder="PT-2048"
+              />
+            )}
           </div>
 
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="painLevel">Douleur declaree</Label>
+              <Label htmlFor="painLevel">Douleur déclarée</Label>
               <span className="text-sm text-muted-foreground">{painLevel}/10</span>
             </div>
             <input
@@ -157,15 +171,15 @@ export function SymptomChecker() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Aucun</SelectItem>
-                  <SelectItem value="light">Leger</SelectItem>
-                  <SelectItem value="moderate">Modere</SelectItem>
+                  <SelectItem value="light">Léger</SelectItem>
+                  <SelectItem value="moderate">Modéré</SelectItem>
                   <SelectItem value="severe">Important</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid gap-2">
-              <Label>Niveau d&apos;oedeme</Label>
+              <Label>Niveau d&apos;œdème</Label>
               <Select
                 value={swellingLevel}
                 onValueChange={(value) => setSwellingLevel(value ?? "0")}
@@ -175,9 +189,9 @@ export function SymptomChecker() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="0">Absent</SelectItem>
-                  <SelectItem value="1">Mild</SelectItem>
-                  <SelectItem value="2">Modere</SelectItem>
-                  <SelectItem value="3">Marque</SelectItem>
+                  <SelectItem value="1">Léger</SelectItem>
+                  <SelectItem value="2">Modéré</SelectItem>
+                  <SelectItem value="3">Marqué</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -190,7 +204,7 @@ export function SymptomChecker() {
               onCheckedChange={(checked) => setHasFever(Boolean(checked))}
             />
             <Label htmlFor="hasFever" className="cursor-pointer">
-              Fievre signalee ou temperature anormale
+              Fièvre signalée ou température anormale
             </Label>
           </div>
 
@@ -200,7 +214,7 @@ export function SymptomChecker() {
               id="notes"
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
-              placeholder="Exemple: douleur plus vive la nuit, rougeur localisee, fatigue inhabituelle..."
+              placeholder="Exemple : douleur plus vive la nuit, rougeur localisée, fatigue inhabituelle..."
               className="min-h-28"
             />
           </div>
@@ -210,13 +224,13 @@ export function SymptomChecker() {
             disabled={isSubmitting}
             className="h-12 rounded-full bg-primary px-6 text-primary-foreground hover:bg-primary/90"
           >
-            {isSubmitting ? "Evaluation en cours..." : "Evaluer le risque"}
+            {isSubmitting ? "Évaluation en cours..." : "Évaluer le risque"}
           </Button>
 
           {error ? (
             <Alert variant="destructive">
               <AlertCircle className="size-4" />
-              <AlertTitle>Service indisponible</AlertTitle>
+              <AlertTitle>Service temporairement indisponible</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
@@ -230,7 +244,7 @@ export function SymptomChecker() {
             <p className="mt-3 text-sm leading-7 text-muted-foreground">
               {deferredNotes
                 ? deferredNotes
-                : "Ajoutez un contexte clinique libre pour enrichir votre evaluation."}
+                : "Ajoutez un contexte clinique libre pour enrichir votre évaluation."}
             </p>
           </div>
 
@@ -238,7 +252,7 @@ export function SymptomChecker() {
             <Card className="border-primary/15 bg-background/95 shadow-none">
               <CardHeader className="gap-3">
                 <div className="flex items-center justify-between gap-3">
-                  <CardTitle className="text-lg">Resultat de l&apos;alerte</CardTitle>
+                  <CardTitle className="text-lg">Résultat de l&apos;évaluation</CardTitle>
                   <Badge
                     className={
                       severityClasses[result.computed_severity] ??
@@ -250,7 +264,7 @@ export function SymptomChecker() {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Dossier {patientCode} · evaluation #{result.assessment_id}
+                  Dossier {patientCode} · évaluation #{result.assessment_id}
                 </p>
               </CardHeader>
               <CardContent className="grid gap-4">
@@ -275,7 +289,7 @@ export function SymptomChecker() {
                     ))
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      Aucune regle d&apos;alerte critique declenchee.
+                      Aucune règle d&apos;alerte critique déclenchée.
                     </p>
                   )}
                 </div>
@@ -284,11 +298,12 @@ export function SymptomChecker() {
           ) : (
             <div className="rounded-[1.75rem] border border-border/70 bg-card/90 p-6">
               <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-                Sortie attendue
+                Résultat attendu
               </p>
               <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                L&apos;API de complications renverra un niveau de severite, les regles
-                declenchees et une recommandation d&apos;escalade ou de surveillance.
+                Remplissez le formulaire et soumettez vos symptômes pour obtenir
+                un niveau de sévérité, les règles déclenchées et une recommandation
+                d&apos;escalade ou de surveillance.
               </p>
             </div>
           )}

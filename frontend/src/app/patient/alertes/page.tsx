@@ -1,7 +1,7 @@
-import { AlertTriangle, Server, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ShieldCheck } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { SymptomChecker } from "@/components/symptom-checker";
 import { alertApi } from "@/lib/api";
 
@@ -26,23 +26,16 @@ export default async function PatientAlertesPage() {
 
   return (
     <div>
-      {/* Step header */}
+      {/* En-tête */}
       <div className="border-b border-border/50 bg-white/50 px-6 py-6 lg:px-10">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <span>Étape 4/4</span>
-          <span>·</span>
-          <Badge variant="outline" className="gap-1 bg-rose-100 text-rose-800 border-rose-200">
-            <Server className="size-3" />
-            complication-alert-service
-          </Badge>
-          <span>·</span>
-          <span>GET /api/alert-rules/ · POST /api/alerts/evaluate/</span>
-        </div>
-        <h1 className="mt-3 font-heading text-3xl font-semibold">
-          Triage d&apos;urgence
+        <p className="text-xs font-semibold uppercase tracking-widest text-rose-600">
+          Surveillance des complications
+        </p>
+        <h1 className="mt-2 font-heading text-3xl font-semibold">
+          Signalement de symptômes
         </h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Signalez vos symptômes pour une évaluation automatique du niveau de
+          Décrivez vos symptômes pour une évaluation automatique du niveau de
           risque. En cas d&apos;alerte critique, une recommandation immédiate
           vous sera fournie.
         </p>
@@ -101,7 +94,7 @@ export default async function PatientAlertesPage() {
 
             {rules.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                Service complication-alert-service (port 8004) hors ligne.
+                Aucune règle de surveillance disponible pour le moment.
               </p>
             )}
 

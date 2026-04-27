@@ -1,105 +1,104 @@
-import { Mail, Phone, Server } from "lucide-react";
-
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { coordinationApi } from "@/lib/api";
+import { NouveauMembreForm } from "@/components/nouveau-membre-form";
+import { StaffCard } from "@/components/staff-card";
+import { TeamAssignmentSection } from "@/components/team-assignment-section";
+import { coordinationApi, recoveryApi } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
 export default async function CoordinateurEquipePage() {
-  const contacts = await coordinationApi.team();
+  const [contacts, assignments, plans] = await Promise.all([
+    coordinationApi.team(),
+    coordinationApi.assignments(),
+    recoveryApi.plans(),
+  ]);
+
+  const patientCodes = [...new Set(assignments.map((a) => a.patient_code))].sort();
+
+  // All distinct patient codes known to the system (from plans + existing assignments)
+  const allPatientCodes = [
+    ...new Set([
+      ...plans.map((p) => p.patient_code),
+      ...assignments.map((a) => a.patient_code),
+    ]),
+  ].sort();
 
   return (
     <div>
       <div className="border-b border-border/50 bg-white/50 px-6 py-6 lg:px-10">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <span>Étape 1/2</span>
-          <span>·</span>
-          <Badge variant="outline" className="gap-1 bg-amber-100 text-amber-800 border-amber-200">
-            <Server className="size-3" />
-            care-coordination-service :8005
-          </Badge>
-          <span>·</span>
-          <span>GET /api/care-team/</span>
-        </div>
-        <h1 className="mt-3 font-heading text-3xl font-semibold">
-          Équipe soignante
-        </h1>
+        <p className="text-xs font-semibold uppercase tracking-widest text-amber-600">
+          Coordination · Équipe soignante
+        </p>
+        <h1 className="mt-2 font-heading text-3xl font-semibold">Équipe soignante</h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Répertoire complet de l&apos;équipe de suivi avec les coordonnées,
-          spécialités et plages de disponibilité.
+          Répertoire de l&apos;équipe de suivi et gestion des affectations par patient.
         </p>
       </div>
 
-      <div className="px-6 py-8 lg:px-10">
-        {contacts.length === 0 ? (
-          <div className="rounded-2xl border border-dashed p-10 text-center text-sm text-muted-foreground">
-            Service care-coordination-service (port 8005) hors ligne.
+      <div className="space-y-10 px-6 py-8 lg:px-10">
+        {/* Staff directory */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-border/60" />
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Répertoire
+            </span>
+            <div className="h-px flex-1 bg-border/60" />
           </div>
-        ) : (
-          <>
-            <div className="mb-4 flex items-center gap-3">
-              <p className="text-sm text-muted-foreground">
-                <strong>{contacts.length}</strong> membre{contacts.length > 1 ? "s" : ""} dans
-                l&apos;équipe ·{" "}
-                <strong>{contacts.filter((c) => c.is_primary).length}</strong> référent
-                {contacts.filter((c) => c.is_primary).length > 1 ? "s" : ""}
-              </p>
-            </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {contacts.map((contact) => (
-                <Card
-                  key={contact.email}
-                  className={`border-border/60 bg-white shadow-sm ${contact.is_primary ? "ring-2 ring-amber-400/50" : ""}`}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start gap-3">
-                      <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm font-bold text-amber-700">
-                        {contact.full_name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .slice(0, 2)
-                          .join("")}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <CardTitle className="text-base">{contact.full_name}</CardTitle>
-                          {contact.is_primary && (
-                            <Badge className="bg-amber-500 text-white text-xs">
-                              Référent
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">{contact.role}</p>
-                        {contact.specialty && (
-                          <p className="text-xs text-muted-foreground">{contact.specialty}</p>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-foreground/80">
-                      <Mail className="size-3.5 shrink-0 text-muted-foreground" />
-                      <span className="truncate">{contact.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-foreground/80">
-                      <Phone className="size-3.5 shrink-0 text-muted-foreground" />
-                      {contact.phone}
-                    </div>
-                    <div className="rounded-lg bg-amber-50 px-3 py-1.5 text-xs text-amber-800">
-                      {contact.availability}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+          <NouveauMembreForm />
+
+          {contacts.length === 0 ? (
+            <div className="rounded-2xl border border-dashed p-10 text-center text-sm text-muted-foreground">
+              Aucun soignant dans le répertoire.
             </div>
-          </>
-        )}
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                <strong>{contacts.length}</strong> membre{contacts.length > 1 ? "s" : ""} ·{" "}
+                <strong>{contacts.filter((c) => c.is_primary).length}</strong> référent
+                {contacts.filter((c) => c.is_primary).length !== 1 ? "s" : ""}
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {contacts.map((contact) => (
+                  <StaffCard key={contact.id} contact={contact} />
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+
+        {/* Assignments per patient */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-border/60" />
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Affectations patients
+            </span>
+            <div className="h-px flex-1 bg-border/60" />
+          </div>
+
+          {/* New assignment — dropdown pre-filled with known patient codes */}
+          {contacts.length > 0 && (
+            <TeamAssignmentSection
+              contacts={contacts}
+              assignments={[]}
+              availablePatientCodes={allPatientCodes}
+            />
+          )}
+
+          {patientCodes.map((code) => (
+            <TeamAssignmentSection
+              key={code}
+              patientCode={code}
+              contacts={contacts}
+              assignments={assignments.filter((a) => a.patient_code === code)}
+            />
+          ))}
+        </section>
 
         <a
           href="/coordinateur/taches"
-          className="mt-6 flex items-center justify-between rounded-2xl bg-amber-500 p-5 text-white transition-opacity hover:opacity-90"
+          className="flex items-center justify-between rounded-2xl bg-amber-500 p-5 text-white transition-opacity hover:opacity-90"
         >
           <div>
             <p className="font-semibold">Étape suivante : Tâches de suivi</p>

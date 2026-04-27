@@ -3,7 +3,7 @@ import { Server, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SymptomChecker } from "@/components/symptom-checker";
-import { alertApi } from "@/lib/api";
+import { alertApi, recoveryApi } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,9 @@ const severityColor: Record<string, string> = {
 const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
 
 export default async function ChirurgienAlertesPage() {
-  const rules = await alertApi.rules();
+  const [rules, plans] = await Promise.all([alertApi.rules(), recoveryApi.plans()]);
+
+  const allPatientCodes = [...new Set(plans.map((p) => p.patient_code))].sort();
   const sorted = [...rules].sort(
     (a, b) =>
       (severityOrder[b.severity] ?? 0) - (severityOrder[a.severity] ?? 0),
@@ -106,7 +108,7 @@ export default async function ChirurgienAlertesPage() {
         </div>
 
         {/* Triage tool */}
-        <SymptomChecker />
+        <SymptomChecker availablePatientCodes={allPatientCodes} />
       </div>
     </div>
   );

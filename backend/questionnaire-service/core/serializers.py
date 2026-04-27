@@ -4,6 +4,8 @@ from core.models import QuestionnaireSubmission, QuestionnaireTemplate
 
 
 class QuestionnaireTemplateSerializer(serializers.ModelSerializer):
+    slug = serializers.SlugField(required=False, allow_blank=True)
+
     class Meta:
         model = QuestionnaireTemplate
         fields = (
@@ -16,6 +18,7 @@ class QuestionnaireTemplateSerializer(serializers.ModelSerializer):
             "medically_validated_by",
             "questions",
         )
+        read_only_fields = ("id",)
 
 
 class QuestionnaireSubmissionSerializer(serializers.ModelSerializer):

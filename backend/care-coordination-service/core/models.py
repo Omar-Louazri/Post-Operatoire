@@ -17,6 +17,25 @@ class CareTeamContact(models.Model):
         return self.full_name
 
 
+class PatientCareAssignment(models.Model):
+    patient_code = models.CharField(max_length=50, db_index=True)
+    contact = models.ForeignKey(
+        CareTeamContact,
+        on_delete=models.CASCADE,
+        related_name="assignments",
+    )
+    role_on_case = models.CharField(max_length=120)
+    notes = models.TextField(blank=True)
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["role_on_case"]
+        unique_together = [("patient_code", "contact")]
+
+    def __str__(self) -> str:
+        return f"{self.patient_code} — {self.contact.full_name} ({self.role_on_case})"
+
+
 class CareCoordinationTask(models.Model):
     class Status(models.TextChoices):
         PLANNED = "planned", "Planned"
@@ -28,7 +47,7 @@ class CareCoordinationTask(models.Model):
         MEDIUM = "medium", "Medium"
         HIGH = "high", "High"
 
-    patient_code = models.CharField(max_length=50)
+    patient_code = models.CharField(max_length=50, db_index=True)
     title = models.CharField(max_length=200)
     responsible_role = models.CharField(max_length=120)
     status = models.CharField(max_length=20, choices=Status.choices)
@@ -42,5 +61,3 @@ class CareCoordinationTask(models.Model):
 
     def __str__(self) -> str:
         return f"{self.patient_code} - {self.title}"
-
-# Create your models here.

@@ -3,14 +3,17 @@
 export type RecoveryPlan = {
   id: number;
   slug: string;
+  patient_code: string;
   title: string;
   specialty: string;
   surgery_type: string;
   target_duration_days: number;
+  start_date: string | null;
   overview: string;
   weekly_objectives: string[];
   self_check_prompts: string[];
   care_team_roles: string[];
+  created_at: string;
 };
 
 export type QuestionnaireTemplate = {
@@ -70,6 +73,15 @@ export type CareTeamContact = {
   is_primary: boolean;
 };
 
+export type PatientCareAssignment = {
+  id: number;
+  patient_code: string;
+  contact: CareTeamContact;
+  role_on_case: string;
+  notes: string;
+  assigned_at: string;
+};
+
 export type CareCoordinationTask = {
   id: number;
   patient_code: string;
@@ -107,14 +119,20 @@ async function safeGet<T>(url: string, fallback: T): Promise<T> {
 // ─── Recovery Plan Service (port 8001) ───────────────────────────────────────
 
 export const recoveryApi = {
-  plans: () =>
-    safeGet<RecoveryPlan[]>(`${serviceUrls.recovery}/api/recovery-plans/`, []),
+  plans: (patientCode?: string) => {
+    const url = patientCode
+      ? `${serviceUrls.recovery}/api/recovery-plans/?patient_code=${encodeURIComponent(patientCode)}`
+      : `${serviceUrls.recovery}/api/recovery-plans/`;
+    return safeGet<RecoveryPlan[]>(url, []);
+  },
   plan: (slug: string) =>
     safeGet<RecoveryPlan | null>(
       `${serviceUrls.recovery}/api/recovery-plans/${slug}/`,
       null,
     ),
 };
+
+export const getRecoveryServiceUrl = () => serviceUrls.recovery;
 
 // ─── Questionnaire Service (port 8002) ───────────────────────────────────────
 
@@ -155,14 +173,22 @@ export const alertApi = {
 export const coordinationApi = {
   team: () =>
     safeGet<CareTeamContact[]>(`${serviceUrls.coordination}/api/care-team/`, []),
-  tasks: () =>
-    safeGet<CareCoordinationTask[]>(
-      `${serviceUrls.coordination}/api/care-tasks/`,
-      [],
-    ),
+  assignments: (patientCode?: string) => {
+    const url = patientCode
+      ? `${serviceUrls.coordination}/api/care-assignments/?patient_code=${encodeURIComponent(patientCode)}`
+      : `${serviceUrls.coordination}/api/care-assignments/`;
+    return safeGet<PatientCareAssignment[]>(url, []);
+  },
+  tasks: (patientCode?: string) => {
+    const url = patientCode
+      ? `${serviceUrls.coordination}/api/care-tasks/?patient_code=${encodeURIComponent(patientCode)}`
+      : `${serviceUrls.coordination}/api/care-tasks/`;
+    return safeGet<CareCoordinationTask[]>(url, []);
+  },
 };
 
 // ─── URL getters for server-side API proxy routes ────────────────────────────
 
 export const getComplicationServiceUrl = () => serviceUrls.complication;
 export const getQuestionnaireServiceUrl = () => serviceUrls.questionnaire;
+export const getCoordinationServiceUrl = () => serviceUrls.coordination;

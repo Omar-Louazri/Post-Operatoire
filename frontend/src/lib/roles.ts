@@ -28,7 +28,6 @@ export const ROLES: RoleConfig[] = [
     capabilities: [
       "Consulter votre parcours post-op",
       "Remplir votre questionnaire quotidien",
-      "Suivre vos exercices guidés",
       "Signaler des complications",
     ],
     steps: [
@@ -45,13 +44,6 @@ export const ROLES: RoleConfig[] = [
         description: "Suivi quotidien douleur & fatigue",
         service: "questionnaire-service",
         href: "/patient/questionnaire",
-      },
-      {
-        id: "exercices",
-        label: "Exercices guidés",
-        description: "Rééducation à domicile",
-        service: "exercise-guidance-service",
-        href: "/patient/exercices",
       },
       {
         id: "alertes",
