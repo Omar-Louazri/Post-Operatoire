@@ -62,6 +62,20 @@ export type AlertRule = {
   immediate_action: string;
 };
 
+export type AlertAssessment = {
+  id: number;
+  patient_code: string;
+  pain_level: number;
+  has_fever: boolean;
+  bleeding_level: "none" | "light" | "moderate" | "severe";
+  swelling_level: number;
+  notes: string;
+  computed_severity: "low" | "medium" | "high" | "critical";
+  triggered_rules: Array<{ code: string; title: string; severity: string; immediate_action: string }>;
+  care_recommendation: string;
+  created_at: string;
+};
+
 export type CareTeamContact = {
   id: number;
   full_name: string;
@@ -166,6 +180,12 @@ export const exerciseApi = {
 export const alertApi = {
   rules: () =>
     safeGet<AlertRule[]>(`${serviceUrls.complication}/api/alert-rules/`, []),
+  assessments: (patientCode?: string) => {
+    const url = patientCode
+      ? `${serviceUrls.complication}/api/alerts/?patient_code=${encodeURIComponent(patientCode)}`
+      : `${serviceUrls.complication}/api/alerts/`;
+    return safeGet<AlertAssessment[]>(url, []);
+  },
 };
 
 // ─── Care Coordination Service (port 8005) ───────────────────────────────────
@@ -192,3 +212,4 @@ export const coordinationApi = {
 export const getComplicationServiceUrl = () => serviceUrls.complication;
 export const getQuestionnaireServiceUrl = () => serviceUrls.questionnaire;
 export const getCoordinationServiceUrl = () => serviceUrls.coordination;
+export const getExerciseServiceUrl = () => serviceUrls.exercise;

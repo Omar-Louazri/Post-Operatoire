@@ -43,8 +43,14 @@ class QuestionnaireTemplateDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class SubmissionListCreateView(ListCreateAPIView):
-    queryset = QuestionnaireSubmission.objects.select_related("template").all()
     serializer_class = QuestionnaireSubmissionSerializer
+
+    def get_queryset(self):
+        qs = QuestionnaireSubmission.objects.select_related("template").all()
+        patient_code = self.request.query_params.get("patient_code")
+        if patient_code:
+            qs = qs.filter(patient_code=patient_code)
+        return qs
 
 
 class SubmissionDetailView(RetrieveUpdateDestroyAPIView):

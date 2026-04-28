@@ -4,6 +4,8 @@ from core.models import ExerciseProtocol
 
 
 class ExerciseProtocolSerializer(serializers.ModelSerializer):
+    slug = serializers.SlugField(required=False)
+
     class Meta:
         model = ExerciseProtocol
         fields = (

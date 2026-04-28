@@ -8,6 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { NouveauExerciceForm } from "@/components/nouveau-exercice-form";
 import { exerciseApi } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,10 @@ export default async function KineExercicesPage() {
       </div>
 
       <div className="px-6 py-8 lg:px-10">
+        <div className="mb-6">
+          <NouveauExerciceForm />
+        </div>
+
         {exercises.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-10 text-center text-sm text-muted-foreground">
             Service exercise-guidance-service (port 8003) hors ligne.

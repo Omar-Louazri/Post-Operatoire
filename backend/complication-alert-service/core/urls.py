@@ -3,13 +3,15 @@ from django.urls import path
 from core.views import (
     AlertAssessmentListView,
     AlertEvaluationView,
-    AlertRuleListView,
+    AlertRuleDetailView,
+    AlertRuleListCreateView,
     HealthView,
 )
 
 urlpatterns = [
     path("health/", HealthView.as_view(), name="health"),
-    path("alert-rules/", AlertRuleListView.as_view(), name="alert-rule-list"),
+    path("alert-rules/", AlertRuleListCreateView.as_view(), name="alert-rule-list"),
+    path("alert-rules/<str:code>/", AlertRuleDetailView.as_view(), name="alert-rule-detail"),
     path("alerts/", AlertAssessmentListView.as_view(), name="alert-list"),
     path("alerts/evaluate/", AlertEvaluationView.as_view(), name="alert-evaluate"),
 ]

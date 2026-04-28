@@ -1,6 +1,6 @@
 from django.conf import settings
 from rest_framework import status
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -27,14 +27,26 @@ class HealthView(APIView):
         return Response({"service": settings.SERVICE_NAME, "status": "ok"})
 
 
-class AlertRuleListView(ListAPIView):
+class AlertRuleListCreateView(ListCreateAPIView):
     queryset = AlertRule.objects.all()
     serializer_class = AlertRuleSerializer
 
 
+class AlertRuleDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = AlertRule.objects.all()
+    serializer_class = AlertRuleSerializer
+    lookup_field = "code"
+
+
 class AlertAssessmentListView(ListAPIView):
-    queryset = AlertAssessment.objects.all()
     serializer_class = AlertAssessmentSerializer
+
+    def get_queryset(self):
+        qs = AlertAssessment.objects.all()
+        patient_code = self.request.query_params.get("patient_code")
+        if patient_code:
+            qs = qs.filter(patient_code=patient_code)
+        return qs
 
 
 class AlertEvaluationView(APIView):

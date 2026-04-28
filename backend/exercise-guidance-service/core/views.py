@@ -1,5 +1,8 @@
+import uuid
+
 from django.conf import settings
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from django.utils.text import slugify
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -15,14 +18,19 @@ class HealthView(APIView):
         return Response({"service": settings.SERVICE_NAME, "status": "ok"})
 
 
-class ExerciseListView(ListAPIView):
+class ExerciseListCreateView(ListCreateAPIView):
     queryset = ExerciseProtocol.objects.all()
     serializer_class = ExerciseProtocolSerializer
 
+    def perform_create(self, serializer):
+        slug = serializer.validated_data.get("slug") or ""
+        if not slug:
+            base = slugify(serializer.validated_data.get("title", "exercise"))
+            slug = f"{base}-{uuid.uuid4().hex[:6]}"
+        serializer.save(slug=slug)
 
-class ExerciseDetailView(RetrieveAPIView):
+
+class ExerciseDetailView(RetrieveUpdateDestroyAPIView):
     queryset = ExerciseProtocol.objects.all()
     serializer_class = ExerciseProtocolSerializer
     lookup_field = "slug"
-
-# Create your views here.
