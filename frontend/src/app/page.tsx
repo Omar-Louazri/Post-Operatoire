@@ -187,7 +187,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-        PostOpCare &mdash; Usage clinique interne &mdash; Données de démonstration
+        PostOps &mdash; Post Operator System &mdash; Usage clinique interne &mdash; Données de démonstration
       </footer>
     </div>
   );

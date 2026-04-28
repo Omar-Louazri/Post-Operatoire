@@ -5,7 +5,7 @@ import "@fontsource/fraunces/latin.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PostOpCare — Suivi post-opératoire",
+  title: "PostOps — Post Operator System",
   description:
     "Plateforme de suivi post-opératoire et de rééducation pour patients et équipes de soins.",
 };
