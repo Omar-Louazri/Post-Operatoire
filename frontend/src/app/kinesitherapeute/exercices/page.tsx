@@ -9,6 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { NouveauExerciceForm } from "@/components/nouveau-exercice-form";
+import { ModifierExerciceForm } from "@/components/modifier-exercice-form";
 import { exerciseApi } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -151,6 +152,7 @@ export default async function KineExercicesPage() {
                             </ul>
                           </div>
                         </div>
+                        <ModifierExerciceForm exercise={ex} />
                       </AccordionContent>
                     </AccordionItem>
                   ))}

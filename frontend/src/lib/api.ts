@@ -156,11 +156,12 @@ export const questionnaireApi = {
       `${serviceUrls.questionnaire}/api/questionnaires/`,
       [],
     ),
-  submissions: () =>
-    safeGet<QuestionnaireSubmission[]>(
-      `${serviceUrls.questionnaire}/api/submissions/`,
-      [],
-    ),
+  submissions: (patientCode?: string) => {
+    const url = patientCode
+      ? `${serviceUrls.questionnaire}/api/submissions/?patient_code=${encodeURIComponent(patientCode)}`
+      : `${serviceUrls.questionnaire}/api/submissions/`;
+    return safeGet<QuestionnaireSubmission[]>(url, []);
+  },
 };
 
 // ─── Exercise Guidance Service (port 8003) ───────────────────────────────────

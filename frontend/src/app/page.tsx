@@ -127,12 +127,6 @@ export default function LandingPage() {
               PostOp<span className="text-primary">Care</span>
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800">
-              <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
-              5 microservices actifs
-            </span>
-          </div>
         </div>
       </header>
 
@@ -140,7 +134,7 @@ export default function LandingPage() {
       <section className="mx-auto w-full max-w-6xl px-6 pb-6 pt-16">
         <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
           <Zap className="size-4 text-primary" />
-          Architecture 5 microservices · Next.js 16 + Django 6
+          Architecture de haute qualité, orientée utilisateur
         </div>
         <h1 className="max-w-3xl font-heading text-5xl font-semibold leading-tight tracking-tight text-foreground">
           Accompagner le patient après l&apos;intervention, pas à pas.

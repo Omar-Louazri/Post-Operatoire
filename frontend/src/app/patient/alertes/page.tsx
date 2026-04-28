@@ -2,10 +2,12 @@ import { AlertTriangle, ShieldCheck } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { SymptomChecker } from "@/components/symptom-checker";
+import { AssessmentManager } from "@/components/assessment-manager";
 import { alertApi } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
+
+const PATIENT_CODE = "PT-2048";
 
 const severityColor: Record<string, string> = {
   critical: "bg-rose-100 text-rose-800 border-rose-200",
@@ -22,7 +24,10 @@ const severityLabel: Record<string, string> = {
 };
 
 export default async function PatientAlertesPage() {
-  const rules = await alertApi.rules();
+  const [rules, assessments] = await Promise.all([
+    alertApi.rules(),
+    alertApi.assessments(PATIENT_CODE),
+  ]);
 
   return (
     <div>
@@ -32,12 +37,11 @@ export default async function PatientAlertesPage() {
           Surveillance des complications
         </p>
         <h1 className="mt-2 font-heading text-3xl font-semibold">
-          Signalement de symptômes
+          Mes évaluations de symptômes
         </h1>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Décrivez vos symptômes pour une évaluation automatique du niveau de
-          risque. En cas d&apos;alerte critique, une recommandation immédiate
-          vous sera fournie.
+          Créez, consultez, modifiez ou supprimez vos évaluations. Chaque
+          soumission est analysée automatiquement selon les règles cliniques.
         </p>
       </div>
 
@@ -51,9 +55,9 @@ export default async function PatientAlertesPage() {
           </AlertDescription>
         </Alert>
 
-        <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-          {/* Rules sidebar */}
-          <div className="space-y-4">
+        <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
+          {/* Sidebar : règles */}
+          <aside className="space-y-4">
             <div>
               <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Signaux surveillés
@@ -73,14 +77,17 @@ export default async function PatientAlertesPage() {
                   <p className="text-sm font-medium leading-tight">{rule.title}</p>
                   <Badge
                     variant="outline"
-                    className={`shrink-0 border text-[10px] ${severityColor[rule.severity] ?? "bg-muted text-muted-foreground"}`}
+                    className={`shrink-0 border text-[10px] ${severityColor[rule.severity] ?? ""}`}
                   >
                     {severityLabel[rule.severity] ?? rule.severity}
                   </Badge>
                 </div>
                 <ul className="mt-2 space-y-1">
                   {rule.trigger_conditions.map((cond) => (
-                    <li key={cond} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                    <li
+                      key={cond}
+                      className="flex items-start gap-1.5 text-xs text-muted-foreground"
+                    >
                       <span className="mt-1 size-1 shrink-0 rounded-full bg-muted-foreground" />
                       {cond}
                     </li>
@@ -94,7 +101,7 @@ export default async function PatientAlertesPage() {
 
             {rules.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                Aucune règle de surveillance disponible pour le moment.
+                Aucune règle disponible pour le moment.
               </p>
             )}
 
@@ -106,20 +113,24 @@ export default async function PatientAlertesPage() {
                 </p>
               </div>
               <p className="mt-1 text-xs text-emerald-800">
-                Vous avez terminé votre parcours du jour. Bravo pour votre
-                assiduité !
+                Vous avez terminé votre parcours du jour. Bravo !
               </p>
               <a
                 href="/"
-                className="mt-3 block text-center rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
+                className="mt-3 block rounded-lg bg-emerald-600 px-3 py-1.5 text-center text-xs font-medium text-white transition-colors hover:bg-emerald-700"
               >
                 Retour à l&apos;accueil
               </a>
             </div>
-          </div>
+          </aside>
 
-          {/* Symptom checker */}
-          <SymptomChecker />
+          {/* Main CRUD */}
+          <main>
+            <AssessmentManager
+              patientCode={PATIENT_CODE}
+              initial={assessments}
+            />
+          </main>
         </div>
       </div>
     </div>

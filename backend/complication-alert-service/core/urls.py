@@ -1,6 +1,7 @@
 from django.urls import path
 
 from core.views import (
+    AlertAssessmentDetailView,
     AlertAssessmentListView,
     AlertEvaluationView,
     AlertRuleDetailView,
@@ -14,4 +15,5 @@ urlpatterns = [
     path("alert-rules/<str:code>/", AlertRuleDetailView.as_view(), name="alert-rule-detail"),
     path("alerts/", AlertAssessmentListView.as_view(), name="alert-list"),
     path("alerts/evaluate/", AlertEvaluationView.as_view(), name="alert-evaluate"),
+    path("alerts/<int:pk>/", AlertAssessmentDetailView.as_view(), name="alert-detail"),
 ]

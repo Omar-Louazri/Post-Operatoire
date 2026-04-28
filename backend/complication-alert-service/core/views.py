@@ -1,6 +1,6 @@
 from django.conf import settings
 from rest_framework import status
-from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveDestroyAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -47,6 +47,11 @@ class AlertAssessmentListView(ListAPIView):
         if patient_code:
             qs = qs.filter(patient_code=patient_code)
         return qs
+
+
+class AlertAssessmentDetailView(RetrieveDestroyAPIView):
+    queryset = AlertAssessment.objects.all()
+    serializer_class = AlertAssessmentSerializer
 
 
 class AlertEvaluationView(APIView):
